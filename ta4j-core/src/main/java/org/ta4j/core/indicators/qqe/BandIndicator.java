@@ -3,6 +3,7 @@ package org.ta4j.core.indicators.qqe;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.RecursiveCachedIndicator;
+import org.ta4j.core.num.NaN;
 import org.ta4j.core.num.Num;
 
 abstract class BandIndicator extends RecursiveCachedIndicator<Num> {
@@ -20,8 +21,8 @@ abstract class BandIndicator extends RecursiveCachedIndicator<Num> {
 
     @Override
     protected Num calculate(int index) {
-        if (index == 0) {
-            return numOf(0);
+        if (index == getBarSeries().getBeginIndex()) {
+            return NaN.NaN;
         }
 
         Num rsiIndex = rsiMaIndicator.getValue(index);

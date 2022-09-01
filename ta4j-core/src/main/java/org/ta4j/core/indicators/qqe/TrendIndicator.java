@@ -15,8 +15,11 @@ class TrendIndicator extends RecursiveCachedIndicator<Boolean> {
     private final CrossedDownIndicatorRule longBandCrossedDown;
 
 
-    TrendIndicator(BarSeries series, EMAIndicator rsiMaIndicator, LongBandIndicator prevLongBandIndicator, ShortBandIndicator prevShortBandIndicator) {
+    TrendIndicator(BarSeries series, EMAIndicator rsiMaIndicator, LongBandIndicator longBandIndicator, ShortBandIndicator shortBandIndicator) {
         super(series);
+
+        final PrevLongBandIndicator prevLongBandIndicator = new PrevLongBandIndicator(series, longBandIndicator);
+        final PrevShortBandIndicator prevShortBandIndicator = new PrevShortBandIndicator(series, shortBandIndicator);
 
         shortBandCrossedUp = new CrossedUpIndicatorRule(rsiMaIndicator, prevShortBandIndicator);
         shortBandCrossedDown = new CrossedDownIndicatorRule(rsiMaIndicator, prevShortBandIndicator);
@@ -28,15 +31,15 @@ class TrendIndicator extends RecursiveCachedIndicator<Boolean> {
 
     @Override
     protected Boolean calculate(int index) {
-        if (index == 0) {
+        if (index == getBarSeries().getBeginIndex()) {
             return true;
         }
 
-        if (shortBandCrossedUp.isSatisfied(index - 1) || shortBandCrossedDown.isSatisfied(index - 1)) {
+        if (shortBandCrossedUp.isSatisfied(index) || shortBandCrossedDown.isSatisfied(index)) {
             return true;
         } else {
 
-            if (longBandCrossedUp.isSatisfied(index - 1) || longBandCrossedDown.isSatisfied(index - 1)) {
+            if (longBandCrossedUp.isSatisfied(index) || longBandCrossedDown.isSatisfied(index)) {
                 return false;
             } else {
                 return getValue(index - 1);
