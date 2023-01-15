@@ -29,12 +29,13 @@ import org.ta4j.core.num.Num;
 
 /**
  * Sum indicator.
- *
+ * <p>
  * I.e.: operand0 + operand1 + ... + operandN
  */
 public class SumIndicator extends CachedIndicator<Num> {
 
     private final Indicator<Num>[] operands;
+    private int times;
 
     /**
      * Constructor. (operand0 plus operand1 plus ... plus operandN)
@@ -48,12 +49,25 @@ public class SumIndicator extends CachedIndicator<Num> {
         this.operands = operands;
     }
 
+    public SumIndicator(Indicator<Num> operand, int times) {
+        this(operand);
+        this.times = times;
+    }
+
     @Override
     protected Num calculate(int index) {
         Num sum = numOf(0);
-        for (Indicator<Num> operand : operands) {
-            sum = sum.plus(operand.getValue(index));
+
+        if (times == 0) {
+            for (Indicator<Num> operand : operands) {
+                sum = sum.plus(operand.getValue(index));
+            }
+        } else {
+            for (int i = 0; i < times; i++) {
+                sum = sum.plus(operands[0].getValue(index - i));
+            }
         }
+
         return sum;
     }
 }
