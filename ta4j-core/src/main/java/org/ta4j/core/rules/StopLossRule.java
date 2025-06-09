@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -31,24 +31,16 @@ import org.ta4j.core.num.Num;
 /**
  * A stop-loss rule.
  *
+ * <p>
  * Satisfied when the close price reaches the loss threshold.
  */
 public class StopLossRule extends AbstractRule {
 
-    /**
-     * Constant value for 100
-     */
-    private final Num HUNDRED;
-
-    /**
-     * The close price indicator
-     */
+    /** The close price indicator. */
     private final ClosePriceIndicator closePrice;
 
-    /**
-     * The loss percentage
-     */
-    private Num lossPercentage;
+    /** The loss percentage. */
+    private final Num lossPercentage;
 
     /**
      * Constructor.
@@ -57,7 +49,7 @@ public class StopLossRule extends AbstractRule {
      * @param lossPercentage the loss percentage
      */
     public StopLossRule(ClosePriceIndicator closePrice, Number lossPercentage) {
-        this(closePrice, closePrice.numOf(lossPercentage));
+        this(closePrice, closePrice.getBarSeries().numFactory().numOf(lossPercentage));
     }
 
     /**
@@ -69,7 +61,6 @@ public class StopLossRule extends AbstractRule {
     public StopLossRule(ClosePriceIndicator closePrice, Num lossPercentage) {
         this.closePrice = closePrice;
         this.lossPercentage = lossPercentage;
-        this.HUNDRED = closePrice.numOf(100);
     }
 
     /** This rule uses the {@code tradingRecord}. */
@@ -96,13 +87,15 @@ public class StopLossRule extends AbstractRule {
     }
 
     private boolean isBuyStopSatisfied(Num entryPrice, Num currentPrice) {
-        Num lossRatioThreshold = HUNDRED.minus(lossPercentage).dividedBy(HUNDRED);
+        final var hundred = closePrice.getBarSeries().numFactory().hundred();
+        Num lossRatioThreshold = hundred.minus(lossPercentage).dividedBy(hundred);
         Num threshold = entryPrice.multipliedBy(lossRatioThreshold);
         return currentPrice.isLessThanOrEqual(threshold);
     }
 
     private boolean isSellStopSatisfied(Num entryPrice, Num currentPrice) {
-        Num lossRatioThreshold = HUNDRED.plus(lossPercentage).dividedBy(HUNDRED);
+        final var hundred = closePrice.getBarSeries().numFactory().hundred();
+        Num lossRatioThreshold = hundred.plus(lossPercentage).dividedBy(hundred);
         Num threshold = entryPrice.multipliedBy(lossRatioThreshold);
         return currentPrice.isGreaterThanOrEqual(threshold);
     }

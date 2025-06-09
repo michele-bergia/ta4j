@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -28,12 +28,12 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.Position;
 import org.ta4j.core.TradingRecord;
 import org.ta4j.core.criteria.helpers.StandardDeviationCriterion;
-import org.ta4j.core.criteria.pnl.ProfitLossCriterion;
+import org.ta4j.core.criteria.pnl.NetProfitLossCriterion;
 import org.ta4j.core.num.Num;
 
 /**
  * The SQN ("System Quality Number") Criterion.
- * 
+ *
  * @see <a href=
  *      "https://indextrader.com.au/van-tharps-sqn/">https://indextrader.com.au/van-tharps-sqn/</a>
  */
@@ -44,27 +44,24 @@ public class SqnCriterion extends AbstractAnalysisCriterion {
     private final NumberOfPositionsCriterion numberOfPositionsCriterion = new NumberOfPositionsCriterion();
 
     /**
-     * The number to be used for the part of <code>√(numberOfPositions)</code>
-     * within the SQN-Formula when there are more than 100 trades. If this value is
-     * <code>null</code>, then the number of positions calculated by
+     * The number to be used for the part of {@code √(numberOfPositions)} within the
+     * SQN-Formula when there are more than 100 trades. If this value is
+     * {@code null}, then the number of positions calculated by
      * {@link #numberOfPositionsCriterion} is used instead.
      */
     private final Integer nPositions;
 
     /**
-     * Constructor.
-     * 
-     * <p>
-     * Uses ProfitLossCriterion for {@link #criterion}.
+     * Constructor with {@code criterion} = {@link NetProfitLossCriterion}.
      */
     public SqnCriterion() {
-        this(new ProfitLossCriterion());
+        this(new NetProfitLossCriterion());
     }
 
     /**
      * Constructor.
-     * 
-     * @param criterion the Criterion (e.g. ProfitLossCriterion or
+     *
+     * @param criterion the Criterion (e.g. NetProfitLossCriterion or
      *                  ExpectancyCriterion)
      */
     public SqnCriterion(AnalysisCriterion criterion) {
@@ -73,8 +70,8 @@ public class SqnCriterion extends AbstractAnalysisCriterion {
 
     /**
      * Constructor.
-     * 
-     * @param criterion  the Criterion (e.g. ProfitLossCriterion or
+     *
+     * @param criterion  the Criterion (e.g. NetProfitLossCriterion or
      *                   ExpectancyCriterion)
      * @param nPositions the {@link #nPositions} (optional)
      */
@@ -86,30 +83,32 @@ public class SqnCriterion extends AbstractAnalysisCriterion {
 
     @Override
     public Num calculate(BarSeries series, Position position) {
+        Num stdDevPnl = standardDeviationCriterion.calculate(series, position);
+        if (stdDevPnl.isZero()) {
+            return series.numFactory().zero();
+        }
+        // SQN = (Average (PnL) / StdDev(PnL)) * SquareRoot(NumberOfTrades)
         Num numberOfPositions = numberOfPositionsCriterion.calculate(series, position);
         Num pnl = criterion.calculate(series, position);
         Num avgPnl = pnl.dividedBy(numberOfPositions);
-        Num stdDevPnl = standardDeviationCriterion.calculate(series, position);
-        if (stdDevPnl.isZero()) {
-            return series.numOf(0);
-        }
-        // SQN = (Average (PnL) / StdDev(PnL)) * SquareRoot(NumberOfTrades)
         return avgPnl.dividedBy(stdDevPnl).multipliedBy(numberOfPositions.sqrt());
     }
 
     @Override
     public Num calculate(BarSeries series, TradingRecord tradingRecord) {
-        if (tradingRecord.getPositions().isEmpty())
-            return series.numOf(0);
+        if (tradingRecord.getPositions().isEmpty()) {
+            return series.numFactory().zero();
+        }
+        Num stdDevPnl = standardDeviationCriterion.calculate(series, tradingRecord);
+        if (stdDevPnl.isZero()) {
+            return series.numFactory().zero();
+        }
+
         Num numberOfPositions = numberOfPositionsCriterion.calculate(series, tradingRecord);
         Num pnl = criterion.calculate(series, tradingRecord);
         Num avgPnl = pnl.dividedBy(numberOfPositions);
-        Num stdDevPnl = standardDeviationCriterion.calculate(series, tradingRecord);
-        if (stdDevPnl.isZero()) {
-            return series.numOf(0);
-        }
-        if (nPositions != null && numberOfPositions.isGreaterThan(series.numOf(100))) {
-            numberOfPositions = series.numOf(nPositions);
+        if (nPositions != null && numberOfPositions.isGreaterThan(series.numFactory().hundred())) {
+            numberOfPositions = series.numFactory().numOf(nPositions);
         }
         // SQN = (Average (PnL) / StdDev(PnL)) * SquareRoot(NumberOfTrades)
         return avgPnl.dividedBy(stdDevPnl).multipliedBy(numberOfPositions.sqrt());

@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -28,25 +28,26 @@ import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
 
 /**
- * Sum indicator.
+ * Calculates the sum of all indicator values.
  *
- * I.e.: operand0 + operand1 + ... + operandN
+ * <pre>
+ * Sum = summand0 + summand1 + ... + summandN
+ * </pre>
  */
 public class SumIndicator extends CachedIndicator<Num> {
 
-    private final Indicator<Num>[] operands;
-    private int times;
+    private final Indicator<Num>[] summands;
 
     /**
-     * Constructor. (operand0 plus operand1 plus ... plus operandN)
-     * 
-     * @param operands the operand indicators for the sum
+     * Constructor.
+     *
+     * @param summands the indicators ​​to be summed
      */
     @SafeVarargs
-    public SumIndicator(Indicator<Num>... operands) {
+    public SumIndicator(Indicator<Num>... summands) {
         // TODO: check if first series is equal to the other ones
-        super(operands[0]);
-        this.operands = operands;
+        super(summands[0]);
+        this.summands = summands;
     }
 
     public SumIndicator(Indicator<Num> operand, int times) {
@@ -56,18 +57,16 @@ public class SumIndicator extends CachedIndicator<Num> {
 
     @Override
     protected Num calculate(int index) {
-        Num sum = numOf(0);
-
-        if (times == 0) {
-            for (Indicator<Num> operand : operands) {
-                sum = sum.plus(operand.getValue(index));
-            }
-        } else {
-            for (int i = 0; i < times; i++) {
-                sum = sum.plus(operands[0].getValue(index - i));
-            }
+        Num sum = getBarSeries().numFactory().zero();
+        for (Indicator<Num> summand : summands) {
+            sum = sum.plus(summand.getValue(index));
         }
 
         return sum;
+    }
+
+    @Override
+    public int getCountOfUnstableBars() {
+        return 0;
     }
 }

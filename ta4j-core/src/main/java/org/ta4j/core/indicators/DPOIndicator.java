@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -25,6 +25,7 @@ package org.ta4j.core.indicators;
 
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Indicator;
+import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.CombineIndicator;
 import org.ta4j.core.indicators.helpers.PreviousValueIndicator;
@@ -33,6 +34,7 @@ import org.ta4j.core.num.Num;
 /**
  * The Detrended Price Oscillator (DPO) indicator.
  *
+ * <p>
  * The Detrended Price Oscillator (DPO) is an indicator designed to remove trend
  * from price and make it easier to identify cycles. DPO does not extend to the
  * last date because it is based on a displaced moving average. However,
@@ -40,6 +42,7 @@ import org.ta4j.core.num.Num;
  * oscillator. Instead, DPO is used to identify cycles highs/lows and estimate
  * cycle length.
  *
+ * <p>
  * In short, DPO(20) equals price 11 days ago less the 20-day SMA.
  *
  * @see <a href=
@@ -54,7 +57,7 @@ public class DPOIndicator extends CachedIndicator<Num> {
     /**
      * Constructor.
      *
-     * @param series   the series
+     * @param series   the bar series
      * @param barCount the time frame
      */
     public DPOIndicator(BarSeries series, int barCount) {
@@ -73,7 +76,6 @@ public class DPOIndicator extends CachedIndicator<Num> {
         final SMAIndicator simpleMovingAverage = new SMAIndicator(price, barCount);
         final PreviousValueIndicator previousSimpleMovingAverage = new PreviousValueIndicator(simpleMovingAverage,
                 timeFrame);
-
         this.indicatorMinusPreviousSMAIndicator = CombineIndicator.minus(price, previousSimpleMovingAverage);
         this.name = String.format("%s barCount: %s", getClass().getSimpleName(), barCount);
     }
@@ -81,6 +83,11 @@ public class DPOIndicator extends CachedIndicator<Num> {
     @Override
     protected Num calculate(int index) {
         return indicatorMinusPreviousSMAIndicator.getValue(index);
+    }
+
+    @Override
+    public int getCountOfUnstableBars() {
+        return 0;
     }
 
     @Override

@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -31,23 +31,18 @@ import org.ta4j.core.num.Num;
 /**
  * A stop-gain rule.
  *
+ * <p>
  * Satisfied when the close price reaches the gain threshold.
  */
 public class StopGainRule extends AbstractRule {
 
-    /**
-     * Constant value for 100
-     */
+    /** The constant value for 100. */
     private final Num HUNDRED;
 
-    /**
-     * The close price indicator
-     */
+    /** The close price indicator. */
     private final ClosePriceIndicator closePrice;
 
-    /**
-     * The gain percentage
-     */
+    /** The gain percentage. */
     private final Num gainPercentage;
 
     /**
@@ -57,7 +52,7 @@ public class StopGainRule extends AbstractRule {
      * @param gainPercentage the gain percentage
      */
     public StopGainRule(ClosePriceIndicator closePrice, Number gainPercentage) {
-        this(closePrice, closePrice.numOf(gainPercentage));
+        this(closePrice, closePrice.getBarSeries().numFactory().numOf(gainPercentage));
     }
 
     /**
@@ -69,7 +64,7 @@ public class StopGainRule extends AbstractRule {
     public StopGainRule(ClosePriceIndicator closePrice, Num gainPercentage) {
         this.closePrice = closePrice;
         this.gainPercentage = gainPercentage;
-        HUNDRED = closePrice.numOf(100);
+        HUNDRED = closePrice.getBarSeries().numFactory().hundred();
     }
 
     /** This rule uses the {@code tradingRecord}. */

@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -28,12 +28,14 @@ import java.util.function.UnaryOperator;
 
 import org.ta4j.core.Indicator;
 import org.ta4j.core.indicators.CachedIndicator;
+import org.ta4j.core.num.DecimalNumFactory;
 import org.ta4j.core.num.Num;
 
 /**
  * Transform indicator.
+ *
  * <p>
- * Transforms the Num of any indicator by using common math operations.
+ * Transforms the {@link Num} of any indicator by using common math operations.
  *
  * @apiNote Minimal deviations in last decimal places possible. During some
  *          calculations this indicator converts {@link Num DecimalNum} to
@@ -46,8 +48,8 @@ public class TransformIndicator extends CachedIndicator<Num> {
 
     /**
      * Constructor.
-     * 
-     * @param indicator      the indicator
+     *
+     * @param indicator      the {@link Indicator}
      * @param transformation a {@link Function} describing the transformation
      */
     public TransformIndicator(Indicator<Num> indicator, UnaryOperator<Num> transformation) {
@@ -61,11 +63,16 @@ public class TransformIndicator extends CachedIndicator<Num> {
         return transformationFunction.apply(indicator.getValue(index));
     }
 
+    @Override
+    public int getCountOfUnstableBars() {
+        return 0;
+    }
+
     /**
      * Transforms the input indicator by indicator.plus(coefficient).
      */
     public static TransformIndicator plus(Indicator<Num> indicator, Number coefficient) {
-        Num numCoefficient = indicator.numOf(coefficient);
+        Num numCoefficient = indicator.getBarSeries().numFactory().numOf(coefficient);
         return new TransformIndicator(indicator, val -> val.plus(numCoefficient));
     }
 
@@ -73,7 +80,7 @@ public class TransformIndicator extends CachedIndicator<Num> {
      * Transforms the input indicator by indicator.minus(coefficient).
      */
     public static TransformIndicator minus(Indicator<Num> indicator, Number coefficient) {
-        Num numCoefficient = indicator.numOf(coefficient);
+        Num numCoefficient = indicator.getBarSeries().numFactory().numOf(coefficient);
         return new TransformIndicator(indicator, val -> val.minus(numCoefficient));
     }
 
@@ -81,7 +88,7 @@ public class TransformIndicator extends CachedIndicator<Num> {
      * Transforms the input indicator by indicator.dividedBy(coefficient).
      */
     public static TransformIndicator divide(Indicator<Num> indicator, Number coefficient) {
-        Num numCoefficient = indicator.numOf(coefficient);
+        Num numCoefficient = indicator.getBarSeries().numFactory().numOf(coefficient);
         return new TransformIndicator(indicator, val -> val.dividedBy(numCoefficient));
     }
 
@@ -89,7 +96,7 @@ public class TransformIndicator extends CachedIndicator<Num> {
      * Transforms the input indicator by indicator.multipliedBy(coefficient).
      */
     public static TransformIndicator multiply(Indicator<Num> indicator, Number coefficient) {
-        Num numCoefficient = indicator.numOf(coefficient);
+        Num numCoefficient = indicator.getBarSeries().numFactory().numOf(coefficient);
         return new TransformIndicator(indicator, val -> val.multipliedBy(numCoefficient));
     }
 
@@ -97,7 +104,7 @@ public class TransformIndicator extends CachedIndicator<Num> {
      * Transforms the input indicator by indicator.max(coefficient).
      */
     public static TransformIndicator max(Indicator<Num> indicator, Number coefficient) {
-        Num numCoefficient = indicator.numOf(coefficient);
+        Num numCoefficient = indicator.getBarSeries().numFactory().numOf(coefficient);
         return new TransformIndicator(indicator, val -> val.max(numCoefficient));
     }
 
@@ -105,7 +112,7 @@ public class TransformIndicator extends CachedIndicator<Num> {
      * Transforms the input indicator by indicator.min(coefficient).
      */
     public static TransformIndicator min(Indicator<Num> indicator, Number coefficient) {
-        Num numCoefficient = indicator.numOf(coefficient);
+        Num numCoefficient = indicator.getBarSeries().numFactory().numOf(coefficient);
         return new TransformIndicator(indicator, val -> val.min(numCoefficient));
     }
 
@@ -117,6 +124,14 @@ public class TransformIndicator extends CachedIndicator<Num> {
     }
 
     /**
+     * Transforms the input indicator by indicator.pow(coefficient).
+     */
+    public static TransformIndicator pow(Indicator<Num> indicator, Number coefficient) {
+        Num numCoefficient = indicator.getBarSeries().numFactory().numOf(coefficient);
+        return new TransformIndicator(indicator, val -> val.pow(numCoefficient));
+    }
+
+    /**
      * Transforms the input indicator by indicator.sqrt().
      */
     public static TransformIndicator sqrt(Indicator<Num> indicator) {
@@ -125,12 +140,13 @@ public class TransformIndicator extends CachedIndicator<Num> {
 
     /**
      * Transforms the input indicator by indicator.log().
-     * 
+     *
      * @apiNote precision may be lost, because this implementation is using the
      *          underlying doubleValue method
      */
     public static TransformIndicator log(Indicator<Num> indicator) {
-        return new TransformIndicator(indicator, val -> val.numOf(Math.log(val.doubleValue())));
+        return new TransformIndicator(indicator,
+                val -> DecimalNumFactory.getInstance().numOf(Math.log(val.doubleValue())));
     }
 
     @Override

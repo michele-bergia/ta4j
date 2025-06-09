@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -33,19 +33,18 @@ import org.ta4j.core.analysis.Returns;
 import org.ta4j.core.num.Num;
 
 /**
- * Value at Risk criterion.
+ * Value at Risk criterion, returned in decimal format.
  *
  * @see <a href=
  *      "https://en.wikipedia.org/wiki/Value_at_risk">https://en.wikipedia.org/wiki/Value_at_risk</a>
  */
 public class ValueAtRiskCriterion extends AbstractAnalysisCriterion {
-    /**
-     * Confidence level as absolute value (e.g. 0.95)
-     */
+
+    /** Confidence level as absolute value (e.g. 0.95). */
     private final Double confidence;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param confidence the confidence level
      */
@@ -55,11 +54,11 @@ public class ValueAtRiskCriterion extends AbstractAnalysisCriterion {
 
     @Override
     public Num calculate(BarSeries series, Position position) {
-        if (position != null && position.isClosed()) {
-            Returns returns = new Returns(series, position, Returns.ReturnType.LOG);
-            return calculateVaR(returns, confidence);
+        if (position == null || !position.isClosed()) {
+            return series.numFactory().zero();
         }
-        return series.numOf(0);
+        Returns returns = new Returns(series, position, Returns.ReturnType.LOG);
+        return calculateVaR(returns, confidence);
     }
 
     @Override
@@ -69,16 +68,20 @@ public class ValueAtRiskCriterion extends AbstractAnalysisCriterion {
     }
 
     /**
-     * Calculates the VaR on the return series
-     * 
+     * Calculates the VaR on the return series.
+     *
      * @param returns    the corresponding returns
      * @param confidence the confidence level
      * @return the relative Value at Risk
      */
     private static Num calculateVaR(Returns returns, double confidence) {
-        Num zero = returns.numOf(0);
+        Num zero = returns.getBarSeries().numFactory().zero();
         // select non-NaN returns
         List<Num> returnRates = returns.getValues().subList(1, returns.getSize() + 1);
+        if (returnRates.isEmpty()) {
+            return zero;
+        }
+
         Num valueAtRisk = zero;
         if (!returnRates.isEmpty()) {
             // F(x_var) >= alpha (=1-confidence)

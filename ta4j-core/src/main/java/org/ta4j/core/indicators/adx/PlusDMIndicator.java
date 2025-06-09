@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -30,27 +30,41 @@ import org.ta4j.core.num.Num;
 
 /**
  * +DM indicator.
+ *
+ * <p>
+ * Part of the Directional Movement System.
  */
 public class PlusDMIndicator extends CachedIndicator<Num> {
 
+    /**
+     * Constructor.
+     *
+     * @param series the bar series
+     */
     public PlusDMIndicator(BarSeries series) {
         super(series);
     }
 
     @Override
     protected Num calculate(int index) {
+        final var numFactory = getBarSeries().numFactory();
         if (index == 0) {
-            return numOf(0);
+            return numFactory.zero();
         }
         final Bar prevBar = getBarSeries().getBar(index - 1);
         final Bar currentBar = getBarSeries().getBar(index);
 
         final Num upMove = currentBar.getHighPrice().minus(prevBar.getHighPrice());
         final Num downMove = prevBar.getLowPrice().minus(currentBar.getLowPrice());
-        if (upMove.isGreaterThan(downMove) && upMove.isGreaterThan(numOf(0))) {
+        if (upMove.isGreaterThan(downMove) && upMove.isGreaterThan(numFactory.zero())) {
             return upMove;
         } else {
-            return numOf(0);
+            return numFactory.zero();
         }
+    }
+
+    @Override
+    public int getCountOfUnstableBars() {
+        return 0;
     }
 }

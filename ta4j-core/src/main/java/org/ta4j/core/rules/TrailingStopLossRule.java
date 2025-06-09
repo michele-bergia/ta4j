@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -31,34 +31,28 @@ import org.ta4j.core.indicators.helpers.LowestValueIndicator;
 import org.ta4j.core.num.Num;
 
 /**
- * A trailing stop-loss rule
+ * A trailing stop-loss rule.
  *
+ * <p>
  * Satisfied when the price reaches the trailing loss threshold.
  */
 public class TrailingStopLossRule extends AbstractRule {
 
-    /**
-     * The price indicator
-     */
+    /** The price indicator. */
     private final Indicator<Num> priceIndicator;
 
-    /** The barCount */
+    /** The barCount. */
     private final int barCount;
 
-    /** the loss-distance as percentage */
+    /** the loss-distance as percentage. */
     private final Num lossPercentage;
 
     /**
-     * the current stop loss price activation
-     */
-    private Num currentStopLossLimitActivation;
-
-    /**
      * Constructor.
-     * 
+     *
      * @param indicator      the (close price) indicator
      * @param lossPercentage the loss percentage
-     * @param barCount       number of bars to look back for the calculation
+     * @param barCount       the number of bars to look back for the calculation
      */
     public TrailingStopLossRule(Indicator<Num> indicator, Num lossPercentage, int barCount) {
         this.priceIndicator = indicator;
@@ -68,7 +62,7 @@ public class TrailingStopLossRule extends AbstractRule {
 
     /**
      * Constructor.
-     * 
+     *
      * @param indicator      the (close price) indicator
      * @param lossPercentage the loss percentage
      */
@@ -102,21 +96,19 @@ public class TrailingStopLossRule extends AbstractRule {
         HighestValueIndicator highest = new HighestValueIndicator(priceIndicator,
                 getValueIndicatorBarCount(index, positionIndex));
         Num highestCloseNum = highest.getValue(index);
-        Num lossRatioThreshold = highestCloseNum.numOf(100).minus(lossPercentage).dividedBy(highestCloseNum.numOf(100));
-        currentStopLossLimitActivation = highestCloseNum.multipliedBy(lossRatioThreshold);
+        final var hundred = highestCloseNum.getNumFactory().hundred();
+        Num lossRatioThreshold = hundred.minus(lossPercentage).dividedBy(hundred);
+        Num currentStopLossLimitActivation = highestCloseNum.multipliedBy(lossRatioThreshold);
         return currentPrice.isLessThanOrEqual(currentStopLossLimitActivation);
-    }
-
-    public Num getCurrentStopLossLimitActivation() {
-        return currentStopLossLimitActivation;
     }
 
     private boolean isSellSatisfied(Num currentPrice, int index, int positionIndex) {
         LowestValueIndicator lowest = new LowestValueIndicator(priceIndicator,
                 getValueIndicatorBarCount(index, positionIndex));
         Num lowestCloseNum = lowest.getValue(index);
-        Num lossRatioThreshold = lowestCloseNum.numOf(100).plus(lossPercentage).dividedBy(lowestCloseNum.numOf(100));
-        currentStopLossLimitActivation = lowestCloseNum.multipliedBy(lossRatioThreshold);
+        final var hundred = lowestCloseNum.getNumFactory().hundred();
+        Num lossRatioThreshold = hundred.plus(lossPercentage).dividedBy(hundred);
+        Num currentStopLossLimitActivation = lowestCloseNum.multipliedBy(lossRatioThreshold);
         return currentPrice.isGreaterThanOrEqual(currentStopLossLimitActivation);
     }
 
@@ -127,9 +119,8 @@ public class TrailingStopLossRule extends AbstractRule {
     @Override
     protected void traceIsSatisfied(int index, boolean isSatisfied) {
         if (log.isTraceEnabled()) {
-            log.trace("{}#isSatisfied({}): {}. Current price: {}, Current stop loss activation: {}",
-                    getClass().getSimpleName(), index, isSatisfied, priceIndicator.getValue(index),
-                    currentStopLossLimitActivation);
+            log.trace("{}#isSatisfied({}): {}. Current price: {}", getClass().getSimpleName(), index, isSatisfied,
+                    priceIndicator.getValue(index));
         }
     }
 }

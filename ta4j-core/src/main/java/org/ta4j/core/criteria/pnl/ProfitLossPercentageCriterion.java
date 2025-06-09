@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -25,14 +25,15 @@ package org.ta4j.core.criteria.pnl;
 
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Position;
+import org.ta4j.core.Trade;
 import org.ta4j.core.TradingRecord;
 import org.ta4j.core.criteria.AbstractAnalysisCriterion;
 import org.ta4j.core.num.Num;
 
 /**
  * Net profit and loss in percentage criterion (relative PnL, excludes trading
- * costs).
- * 
+ * costs), returned in percentage format (e.g. 1 = 1%).
+ *
  * <p>
  * Defined as the position profit over the purchase price. The profit or loss in
  * percentage over the provided {@link Position position(s)}.
@@ -42,27 +43,42 @@ public class ProfitLossPercentageCriterion extends AbstractAnalysisCriterion {
 
     @Override
     public Num calculate(BarSeries series, Position position) {
+        var numFactory = series.numFactory();
         if (position.isClosed()) {
-            Num entryPrice = position.getEntry().getValue();
-            Num pnl = position.getProfit().dividedBy(entryPrice).multipliedBy(series.numOf(100));
-            return pnl;
+            var entryPrice = position.getEntry().getValue();
+            return position.getProfit().dividedBy(entryPrice).multipliedBy(numFactory.hundred());
         }
-        return series.numOf(0);
-    }
-
-    @Override
-    public Num calculate(BarSeries series, TradingRecord tradingRecord) {
-        return tradingRecord.getPositions()
-                .stream()
-                .filter(Position::isClosed)
-                .map(position -> calculate(series, position))
-                .reduce(series.numOf(0), Num::plus);
+        return numFactory.zero();
     }
 
     /** The higher the criterion value, the better. */
     @Override
     public boolean betterThan(Num criterionValue1, Num criterionValue2) {
         return criterionValue1.isGreaterThan(criterionValue2);
+    }
+
+    @Override
+    public Num calculate(BarSeries series, TradingRecord tradingRecord) {
+        var numFactory = series.numFactory();
+        var zero = numFactory.zero();
+
+        var totalProfit = tradingRecord.getPositions()
+                .stream()
+                .filter(Position::isClosed)
+                .map(Position::getProfit)
+                .reduce(zero, Num::plus);
+
+        var totalEntryPrice = tradingRecord.getPositions()
+                .stream()
+                .filter(Position::isClosed)
+                .map(Position::getEntry)
+                .map(Trade::getValue)
+                .reduce(zero, Num::plus);
+
+        if (totalEntryPrice.isZero()) {
+            return zero;
+        }
+        return totalProfit.dividedBy(totalEntryPrice).multipliedBy(numFactory.hundred());
     }
 
 }

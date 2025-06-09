@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -30,40 +30,30 @@ import org.ta4j.core.criteria.AbstractAnalysisCriterion;
 import org.ta4j.core.num.Num;
 
 /**
- * Ratio gross profit and loss criterion = Average gross profit (includes
- * trading costs) / Average gross loss (includes trading costs).
+ * Profit/Loss ratio criterion.
+ *
+ * <p>
+ * Defined as the average net profit divided by the average net loss. Both
+ * averages include trading costs; that is, costs are subtracted from each
+ * position before computing the mean values. The ratio is returned in decimal
+ * format.
  */
 public class ProfitLossRatioCriterion extends AbstractAnalysisCriterion {
 
-    private final AverageProfitCriterion averageProfitCriterion = new AverageProfitCriterion();
-    private final AverageLossCriterion averageLossCriterion = new AverageLossCriterion();
+    private final NetAverageProfitCriterion averageProfitCriterion = new NetAverageProfitCriterion();
+    private final NetAverageLossCriterion averageLossCriterion = new NetAverageLossCriterion();
 
     @Override
     public Num calculate(BarSeries series, Position position) {
         Num averageProfit = averageProfitCriterion.calculate(series, position);
         if (averageProfit.isZero()) {
-            // only loosing positions means a ratio of 0
-            return series.numOf(0);
+            // only losing positions means a ratio of 0
+            return series.numFactory().zero();
         }
         Num averageLoss = averageLossCriterion.calculate(series, position);
         if (averageLoss.isZero()) {
             // only winning positions means a ratio of 1
-            return series.numOf(1);
-        }
-        return averageProfit.dividedBy(averageLoss).abs();
-    }
-
-    @Override
-    public Num calculate(BarSeries series, TradingRecord tradingRecord) {
-        Num averageProfit = averageProfitCriterion.calculate(series, tradingRecord);
-        if (averageProfit.isZero()) {
-            // only loosing positions means a ratio of 0
-            return series.numOf(0);
-        }
-        Num averageLoss = averageLossCriterion.calculate(series, tradingRecord);
-        if (averageLoss.isZero()) {
-            // only winning positions means a ratio of 1
-            return series.numOf(1);
+            return series.numFactory().one();
         }
         return averageProfit.dividedBy(averageLoss).abs();
     }
@@ -72,6 +62,21 @@ public class ProfitLossRatioCriterion extends AbstractAnalysisCriterion {
     @Override
     public boolean betterThan(Num criterionValue1, Num criterionValue2) {
         return criterionValue1.isGreaterThan(criterionValue2);
+    }
+
+    @Override
+    public Num calculate(BarSeries series, TradingRecord tradingRecord) {
+        Num averageProfit = averageProfitCriterion.calculate(series, tradingRecord);
+        if (averageProfit.isZero()) {
+            // only losing positions means a ratio of 0
+            return series.numFactory().zero();
+        }
+        Num averageLoss = averageLossCriterion.calculate(series, tradingRecord);
+        if (averageLoss.isZero()) {
+            // only winning positions means a ratio of 1
+            return series.numFactory().one();
+        }
+        return averageProfit.dividedBy(averageLoss).abs();
     }
 
 }

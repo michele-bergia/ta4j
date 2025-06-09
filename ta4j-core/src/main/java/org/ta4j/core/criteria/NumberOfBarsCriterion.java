@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -31,6 +31,7 @@ import org.ta4j.core.num.Num;
 /**
  * Number of bars criterion.
  *
+ * <p>
  * Returns the total number of bars in all the positions.
  */
 public class NumberOfBarsCriterion extends AbstractAnalysisCriterion {
@@ -40,9 +41,9 @@ public class NumberOfBarsCriterion extends AbstractAnalysisCriterion {
         if (position.isClosed()) {
             final int exitIndex = position.getExit().getIndex();
             final int entryIndex = position.getEntry().getIndex();
-            return series.numOf(exitIndex - entryIndex + 1);
+            return series.numFactory().numOf(exitIndex - entryIndex + 1);
         }
-        return series.numOf(0);
+        return series.numFactory().zero();
     }
 
     @Override
@@ -51,7 +52,7 @@ public class NumberOfBarsCriterion extends AbstractAnalysisCriterion {
                 .stream()
                 .filter(Position::isClosed)
                 .map(t -> calculate(series, t))
-                .reduce(series.numOf(0), Num::plus);
+                .reduce(series.numFactory().zero(), Num::plus);
     }
 
     /** The lower the criterion value, the better. */

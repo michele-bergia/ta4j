@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -24,6 +24,7 @@
 package org.ta4j.core.indicators;
 
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.indicators.averages.MMAIndicator;
 import org.ta4j.core.indicators.helpers.TRIndicator;
 import org.ta4j.core.num.Num;
 
@@ -35,14 +36,26 @@ public class ATRIndicator extends AbstractIndicator<Num> {
     private final TRIndicator trIndicator;
     private final MMAIndicator averageTrueRangeIndicator;
 
+    /**
+     * Constructor.
+     *
+     * @param series   the bar series
+     * @param barCount the time frame
+     */
     public ATRIndicator(BarSeries series, int barCount) {
         this(new TRIndicator(series), barCount);
     }
 
+    /**
+     * Constructor.
+     *
+     * @param tr       the {@link TRIndicator}
+     * @param barCount the time frame
+     */
     public ATRIndicator(TRIndicator tr, int barCount) {
         super(tr.getBarSeries());
         this.trIndicator = tr;
-        this.averageTrueRangeIndicator = new MMAIndicator(new TRIndicator(tr.getBarSeries()), barCount);
+        this.averageTrueRangeIndicator = new MMAIndicator(tr, barCount);
     }
 
     @Override
@@ -50,10 +63,17 @@ public class ATRIndicator extends AbstractIndicator<Num> {
         return averageTrueRangeIndicator.getValue(index);
     }
 
+    @Override
+    public int getCountOfUnstableBars() {
+        return getBarCount();
+    }
+
+    /** @return the {@link #trIndicator} */
     public TRIndicator getTRIndicator() {
         return trIndicator;
     }
 
+    /** @return the bar count of {@link #averageTrueRangeIndicator} */
     public int getBarCount() {
         return averageTrueRangeIndicator.getBarCount();
     }

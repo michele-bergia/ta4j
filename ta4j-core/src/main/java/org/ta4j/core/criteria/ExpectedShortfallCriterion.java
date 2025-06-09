@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -33,8 +33,9 @@ import org.ta4j.core.analysis.Returns;
 import org.ta4j.core.num.Num;
 
 /**
- * Expected Shortfall criterion.
+ * Expected Shortfall criterion, returned in decimal format.
  *
+ * <p>
  * Measures the expected shortfall of the strategy log-return time-series.
  *
  * @see <a href=
@@ -42,13 +43,12 @@ import org.ta4j.core.num.Num;
  *
  */
 public class ExpectedShortfallCriterion extends AbstractAnalysisCriterion {
-    /**
-     * Confidence level as absolute value (e.g. 0.95)
-     */
+
+    /** Confidence level as absolute value (e.g. 0.95). */
     private final double confidence;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param confidence the confidence level
      */
@@ -58,11 +58,11 @@ public class ExpectedShortfallCriterion extends AbstractAnalysisCriterion {
 
     @Override
     public Num calculate(BarSeries series, Position position) {
-        if (position != null && position.getEntry() != null && position.getExit() != null) {
-            Returns returns = new Returns(series, position, Returns.ReturnType.LOG);
-            return calculateES(returns, confidence);
+        if (position == null || position.getEntry() == null || position.getExit() == null) {
+            return series.numFactory().zero();
         }
-        return series.numOf(0);
+        Returns returns = new Returns(series, position, Returns.ReturnType.LOG);
+        return calculateES(returns, confidence);
     }
 
     @Override
@@ -72,8 +72,8 @@ public class ExpectedShortfallCriterion extends AbstractAnalysisCriterion {
     }
 
     /**
-     * Calculates the Expected Shortfall on the return series
-     * 
+     * Calculates the Expected Shortfall on the return series.
+     *
      * @param returns    the corresponding returns
      * @param confidence the confidence level
      * @return the relative Expected Shortfall
@@ -81,27 +81,29 @@ public class ExpectedShortfallCriterion extends AbstractAnalysisCriterion {
     private static Num calculateES(Returns returns, double confidence) {
         // select non-NaN returns
         List<Num> returnRates = returns.getValues().subList(1, returns.getSize() + 1);
-        Num zero = returns.numOf(0);
-        Num expectedShortfall = zero;
-        if (!returnRates.isEmpty()) {
-            // F(x_var) >= alpha (=1-confidence)
-            int nInBody = (int) (returns.getSize() * confidence);
-            int nInTail = returns.getSize() - nInBody;
-
-            // calculate average tail loss
-            Collections.sort(returnRates);
-            List<Num> tailEvents = returnRates.subList(0, nInTail);
-            Num sum = zero;
-            for (int i = 0; i < nInTail; i++) {
-                sum = sum.plus(tailEvents.get(i));
-            }
-            expectedShortfall = sum.dividedBy(returns.numOf(nInTail));
-
-            // ES is non-positive
-            if (expectedShortfall.isGreaterThan(zero)) {
-                expectedShortfall = zero;
-            }
+        Num zero = returns.getBarSeries().numFactory().zero();
+        if (returnRates.isEmpty()) {
+            return zero;
         }
+        Num expectedShortfall = zero;
+        // F(x_var) >= alpha (=1-confidence)
+        int nInBody = (int) (returns.getSize() * confidence);
+        int nInTail = returns.getSize() - nInBody;
+
+        // calculate average tail loss
+        Collections.sort(returnRates);
+        List<Num> tailEvents = returnRates.subList(0, nInTail);
+        Num sum = zero;
+        for (int i = 0; i < nInTail; i++) {
+            sum = sum.plus(tailEvents.get(i));
+        }
+        expectedShortfall = sum.dividedBy(returns.getBarSeries().numFactory().numOf(nInTail));
+
+        // ES is non-positive
+        if (expectedShortfall.isGreaterThan(zero)) {
+            expectedShortfall = zero;
+        }
+
         return expectedShortfall;
     }
 

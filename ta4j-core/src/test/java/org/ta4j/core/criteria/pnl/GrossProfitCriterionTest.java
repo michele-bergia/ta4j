@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -21,22 +21,67 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 package org.ta4j.core.criteria.pnl;
 
-import java.util.function.Function;
+import static org.ta4j.core.TestUtils.assertNumEquals;
 
-import org.junit.Test;
-import org.ta4j.core.criteria.AbstractCriterionTest;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import org.ta4j.core.CriterionFactory;
+import org.ta4j.core.AnalysisCriterion;
 import org.ta4j.core.num.Num;
+import org.ta4j.core.num.NumFactory;
 
-public class GrossProfitCriterionTest extends AbstractCriterionTest {
+public class GrossProfitCriterionTest extends AbstractPnlCriterionTest {
 
-    public GrossProfitCriterionTest(Function<Number, Num> numFunction) {
-        super((params) -> new GrossProfitCriterion(), numFunction);
+    public GrossProfitCriterionTest(NumFactory numFactory) {
+        super(params -> new GrossProfitCriterion(), numFactory);
     }
 
-    @Test
-    public void testCalculateOneOpenPositionShouldReturnZero() {
-        openedPositionUtils.testCalculateOneOpenPositionShouldReturnExpectedValue(numFunction, getCriterion(), 0);
+    @Override
+    protected void handleCalculateWithProfits(Num result) {
+        assertNumEquals(25, result);
+    }
+
+    @Override
+    protected void handleCalculateWithLosses(Num result) {
+        assertNumEquals(0, result);
+    }
+
+    @Override
+    protected void handleCalculateOnlyWithProfitPositions(Num result) {
+        assertNumEquals(15, result);
+    }
+
+    @Override
+    protected void handleCalculateOnlyWithProfitPositions2(Num result) {
+        assertNumEquals(25, result);
+    }
+
+    @Override
+    protected void handleCalculateOnlyWithLossPositions(Num result) {
+        assertNumEquals(0, result);
+    }
+
+    @Override
+    protected void handleCalculateProfitWithShortPositions(Num result) {
+        assertNumEquals(0, result);
+    }
+
+    @Override
+    protected void handleBetterThan(AnalysisCriterion criterion) {
+        assertTrue(criterion.betterThan(numOf(2.0), numOf(1.5)));
+        assertFalse(criterion.betterThan(numOf(1.5), numOf(2.0)));
+    }
+
+    @Override
+    protected void handleCalculateOneOpenPositionShouldReturnZero() {
+        openedPositionUtils.testCalculateOneOpenPositionShouldReturnExpectedValue(numFactory, getCriterion(), 0);
+    }
+
+    @Override
+    protected void handleCalculateWithOpenedPosition(Num result) {
+        assertNumEquals(10, result);
     }
 }

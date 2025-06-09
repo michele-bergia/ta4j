@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -23,43 +23,17 @@
  */
 package org.ta4j.core.criteria.pnl;
 
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.Position;
-import org.ta4j.core.TradingRecord;
-import org.ta4j.core.criteria.AbstractAnalysisCriterion;
 import org.ta4j.core.num.Num;
+import org.ta4j.core.Position;
 
 /**
- * Gross profit criterion (includes trading costs).
- *
- * <p>
- * The gross profit of the provided {@link Position position(s)} over the
- * provided {@link BarSeries series}.
+ * Gross profit criterion.
  */
-public class GrossProfitCriterion extends AbstractAnalysisCriterion {
+public class GrossProfitCriterion extends AbstractPnlCriterion {
 
     @Override
-    public Num calculate(BarSeries series, Position position) {
-        if (position.isClosed()) {
-            Num profit = position.getGrossProfit();
-            return profit.isPositive() ? profit : series.numOf(0);
-        }
-        return series.numOf(0);
-    }
-
-    @Override
-    public Num calculate(BarSeries series, TradingRecord tradingRecord) {
-        return tradingRecord.getPositions()
-                .stream()
-                .filter(Position::isClosed)
-                .map(position -> calculate(series, position))
-                .reduce(series.numOf(0), Num::plus);
-    }
-
-    /** The higher the criterion value, the better. */
-    @Override
-    public boolean betterThan(Num criterionValue1, Num criterionValue2) {
-        return criterionValue1.isGreaterThan(criterionValue2);
+    protected Num calculatePosition(Position position) {
+        return profit(grossPnL(position));
     }
 
 }

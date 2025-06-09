@@ -1,7 +1,7 @@
-/**
+/*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2022 Ta4j Organization & respective
+ * Copyright (c) 2017-2025 Ta4j Organization & respective
  * authors (see AUTHORS)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -32,29 +32,32 @@ import org.ta4j.core.indicators.helpers.PreviousValueIndicator;
 import org.ta4j.core.num.Num;
 
 /**
- * Indicator-in-slope rule.
+ * A rule that monitors when an {@link Indicator} shows a specified slope.
  *
+ * <p>
  * Satisfied when the difference of the value of the {@link Indicator indicator}
- * and the previous (n-th) value of the {@link Indicator indicator} is between
- * the values of maxSlope or/and minSlope. It can test both, positive and
- * negative slope.
+ * and its previous (n-th) value is between the values of {@code maxSlope}
+ * or/and {@code minSlope}. It can test both, positive and negative slope.
  */
 public class InSlopeRule extends AbstractRule {
 
-    /** The actual indicator */
-    private Indicator<Num> ref;
-    /** The previous n-th value of ref */
-    private PreviousValueIndicator prev;
-    /** The minimum slope between ref and prev */
-    private Num minSlope;
-    /** The maximum slope between ref and prev */
-    private Num maxSlope;
+    /** The actual indicator. */
+    private final Indicator<Num> ref;
+
+    /** The previous n-th value of ref. */
+    private final PreviousValueIndicator prev;
+
+    /** The minimum slope between ref and prev. */
+    private final Num minSlope;
+
+    /** The maximum slope between ref and prev. */
+    private final Num maxSlope;
 
     /**
      * Constructor.
-     * 
+     *
      * @param ref      the reference indicator
-     * @param minSlope minumum slope between reference and previous indicator
+     * @param minSlope minimum slope between reference and previous indicator
      */
     public InSlopeRule(Indicator<Num> ref, Num minSlope) {
         this(ref, 1, minSlope, NaN);
@@ -62,9 +65,9 @@ public class InSlopeRule extends AbstractRule {
 
     /**
      * Constructor.
-     * 
+     *
      * @param ref      the reference indicator
-     * @param minSlope minumum slope between value of reference and previous
+     * @param minSlope minimum slope between value of reference and previous
      *                 indicator
      * @param maxSlope maximum slope between value of reference and previous
      *                 indicator
@@ -75,7 +78,7 @@ public class InSlopeRule extends AbstractRule {
 
     /**
      * Constructor.
-     * 
+     *
      * @param ref         the reference indicator
      * @param nthPrevious defines the previous n-th indicator
      * @param maxSlope    maximum slope between value of reference and previous
@@ -87,10 +90,10 @@ public class InSlopeRule extends AbstractRule {
 
     /**
      * Constructor.
-     * 
+     *
      * @param ref         the reference indicator
      * @param nthPrevious defines the previous n-th indicator
-     * @param minSlope    minumum slope between value of reference and previous
+     * @param minSlope    minimum slope between value of reference and previous
      *                    indicator
      * @param maxSlope    maximum slope between value of reference and previous
      *                    indicator
