@@ -50,18 +50,12 @@ public class SumIndicator extends CachedIndicator<Num> {
         this.summands = summands;
     }
 
-    public SumIndicator(Indicator<Num> operand, int times) {
-        this(operand);
-        this.times = times;
-    }
-
     @Override
     protected Num calculate(int index) {
         Num sum = getBarSeries().numFactory().zero();
         for (Indicator<Num> summand : summands) {
             sum = sum.plus(summand.getValue(index));
         }
-
         return sum;
     }
 
